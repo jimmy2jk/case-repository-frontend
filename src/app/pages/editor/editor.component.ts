@@ -99,8 +99,7 @@ export class EditorComponent implements OnInit {
     const name = this.nodeName.trim();
     if (!name) return;
 
-    const x = 50 + Math.floor(Math.random() * 500);
-    const y = 50 + Math.floor(Math.random() * 250);
+    const { x, y } = this.getNextNodePosition();
 
     if (this.nodeType === 'process') {
       const id = this.nextId('P', this.model.processes.map(p => p.id));
@@ -278,8 +277,8 @@ export class EditorComponent implements OnInit {
   }
 
 
-  private readonly nodeW = 120;
-  private readonly nodeH = 55;
+  // private readonly nodeW = 120;
+  // private readonly nodeH = 55;
 
   private centerOf(topLeftX: number, topLeftY: number) {
     return { cx: topLeftX + this.nodeW / 2, cy: topLeftY + this.nodeH / 2 };
@@ -347,5 +346,43 @@ export class EditorComponent implements OnInit {
     // Якщо нічого не знайшли (рідко), повертаємо центр
     return candidates[0] ?? { x: rectX + rectW / 2, y: rectY + rectH / 2 };
   }
+
+  private readonly canvasW = 650;
+  private readonly canvasH = 350;
+
+  private readonly nodeW = 120;
+  private readonly nodeH = 55;
+
+  private readonly cols = 2;      // максимум 2 ноди в рядку
+  private readonly padX = 20;     // відступ зліва
+  private readonly padY = 20;     // відступ зверху
+  private readonly gapX = 40;     // відстань між колонками
+  private readonly gapY = 30;     // відстань між рядками
+
+  private getAllNodesCount(): number {
+    return this.model.processes.length
+      + this.model.dataStores.length
+      + this.model.externalEntities.length;
+  }
+
+  private getNextNodePosition(): { x: number; y: number } {
+    const i = this.getAllNodesCount();
+
+    const col = i % this.cols;             // 0 або 1
+    const row = Math.floor(i / this.cols); // 0,1,2...
+
+    const y = this.padY + row * (this.nodeH + this.gapY);
+
+    // ліва нода
+    const leftX = this.padX;
+
+    // права нода: від правого краю canvas
+    const rightX = this.canvasW - this.padX - this.nodeW;
+
+    const x = (col === 0) ? leftX : rightX;
+
+    return { x, y };
+  }
+
 
 }
