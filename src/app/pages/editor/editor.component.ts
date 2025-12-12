@@ -224,26 +224,128 @@ export class EditorComponent implements OnInit {
       const to = this.findNodeById(f.toId);
       if (!from || !to) continue;
 
-      // Центр блоку: ми додаємо невеликий зсув,
-      // бо x/y — це top-left div, а не центр.
-      // Якщо захочеш — підлаштуємо під реальні розміри блока.
-      const x1 = from.x + 40;
-      const y1 = from.y + 20;
-      const x2 = to.x + 40;
-      const y2 = to.y + 20;
+      // Центри source і target
+      const fromCenter = {
+        x: from.x + this.nodeW / 2,
+        y: from.y + this.nodeH / 2
+      };
 
-      const mx = (x1 + x2) / 2;
-      const my = (y1 + y2) / 2;
+      const toCenter = {
+        x: to.x + this.nodeW / 2,
+        y: to.y + this.nodeH / 2
+      };
+
+      // Початок лінії — на краю source у напрямку до target
+      const start = this.intersectRectEdge(
+        from.x,
+        from.y,
+        this.nodeW,
+        this.nodeH,
+        fromCenter.x,
+        fromCenter.y,
+        toCenter.x,
+        toCenter.y
+      );
+
+      // Кінець лінії — на краю target у напрямку від source
+      const end = this.intersectRectEdge(
+        to.x,
+        to.y,
+        this.nodeW,
+        this.nodeH,
+        toCenter.x,
+        toCenter.y,
+        fromCenter.x,
+        fromCenter.y
+      );
+
+      const mx = (start.x + end.x) / 2;
+      const my = (start.y + end.y) / 2;
 
       lines.push({
         id: f.id,
-        x1, y1, x2, y2,
-        mx, my,
+        x1: start.x,
+        y1: start.y,
+        x2: end.x,
+        y2: end.y,
+        mx,
+        my,
         label: f.label
       });
     }
 
     return lines;
+  }
+
+
+  private readonly nodeW = 120;
+  private readonly nodeH = 55;
+
+  private centerOf(topLeftX: number, topLeftY: number) {
+    return { cx: topLeftX + this.nodeW / 2, cy: topLeftY + this.nodeH / 2 };
+  }
+
+  private intersectRectEdge(
+    rectX: number,
+    rectY: number,
+    rectW: number,
+    rectH: number,
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number
+  ): { x: number; y: number } {
+    // прямокутник: [left, right] x [top, bottom]
+    const left = rectX;
+    const right = rectX + rectW;
+    const top = rectY;
+    const bottom = rectY + rectH;
+
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+
+    // якщо точки майже співпали — повернемо центр
+    if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) {
+      return { x: rectX + rectW / 2, y: rectY + rectH / 2 };
+    }
+
+    // Параметричний промінь: P(t) = (fromX,fromY) + t*(dx,dy), t>=0
+    // Шукаємо мінімальний t, при якому P(t) перетинає одну з 4-х сторін прямокутника.
+    const candidates: { t: number; x: number; y: number }[] = [];
+
+    // x = left
+    if (Math.abs(dx) > 1e-6) {
+      const t = (left - fromX) / dx;
+      const y = fromY + t * dy;
+      if (t >= 0 && y >= top && y <= bottom) candidates.push({ t, x: left, y });
+    }
+
+    // x = right
+    if (Math.abs(dx) > 1e-6) {
+      const t = (right - fromX) / dx;
+      const y = fromY + t * dy;
+      if (t >= 0 && y >= top && y <= bottom) candidates.push({ t, x: right, y });
+    }
+
+    // y = top
+    if (Math.abs(dy) > 1e-6) {
+      const t = (top - fromY) / dy;
+      const x = fromX + t * dx;
+      if (t >= 0 && x >= left && x <= right) candidates.push({ t, x, y: top });
+    }
+
+    // y = bottom
+    if (Math.abs(dy) > 1e-6) {
+      const t = (bottom - fromY) / dy;
+      const x = fromX + t * dx;
+      if (t >= 0 && x >= left && x <= right) candidates.push({ t, x, y: bottom });
+    }
+
+    // Нам потрібний перетин, який знаходиться "попереду" від from і найближчий до from:
+    candidates.sort((a, b) => a.t - b.t);
+
+    // Якщо нічого не знайшли (рідко), повертаємо центр
+    return candidates[0] ?? { x: rectX + rectW / 2, y: rectY + rectH / 2 };
   }
 
 }

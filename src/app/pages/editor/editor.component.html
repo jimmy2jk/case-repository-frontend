@@ -89,11 +89,19 @@
     style="position:absolute; left:0; top:0; pointer-events:none;"
   >
     <defs>
-      <marker id="arrowHead" markerWidth="10" markerHeight="7"
-              refX="10" refY="3.5" orient="auto">
-        <polygon points="0 0, 10 3.5, 0 7"></polygon>
+      <marker
+        id="arrowHead"
+        viewBox="0 0 10 10"
+        refX="10"
+        refY="5"
+        markerWidth="8"
+        markerHeight="8"
+        orient="auto"
+      >
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="black"></path>
       </marker>
     </defs>
+
 
     <!-- lines -->
     <line
@@ -101,8 +109,8 @@
       [attr.x1]="l.x1" [attr.y1]="l.y1"
       [attr.x2]="l.x2" [attr.y2]="l.y2"
       stroke="black"
-      stroke-width="2"
-      marker-end="url(#arrowHead)"
+      stroke-width="4"
+      [attr.marker-end]="'url(#arrowHead)'"
     ></line>
 
     <!-- labels -->
@@ -122,7 +130,7 @@
        [style.position]="'absolute'"
        [style.left.px]="n.node.x"
        [style.top.px]="n.node.y"
-       style="border:1px solid #333; padding:6px; background:#fff; min-width:80px;">
+       style="border:1px solid #333; padding:6px; background:#fff; width:120px; height:55px; box-sizing:border-box;">
     <b>{{n.type}}</b><br/>
     {{n.node.id}}: {{n.node.name}}
   </div>
