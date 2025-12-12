@@ -1,0 +1,24 @@
+<h2>DFD Diagrams (Project {{ projectId }})</h2>
+
+<div>
+  <button (click)="back()">Back</button>
+</div>
+
+<div *ngIf="error" style="color:red">{{ error }}</div>
+
+<div style="border:1px solid #ddd; padding:12px; margin:12px 0;">
+  <h3>Create diagram</h3>
+  <div><input placeholder="Name" [(ngModel)]="name" /></div>
+  <div><input placeholder="Level (Context, A0, A1...)" [(ngModel)]="level" /></div>
+  <div><input placeholder="Description" [(ngModel)]="description" /></div>
+  <button (click)="create()">Create</button>
+</div>
+
+<ul>
+  <li *ngFor="let d of diagrams">
+    <b>{{ d.name }}</b> ({{ d.level }}) — {{ d.description }}
+    <button (click)="openVersions(d.id)">Versions</button>
+    <button (click)="openEditor(d.id)">Editor</button>
+    <button (click)="delete(d.id)">Delete</button>
+  </li>
+</ul>

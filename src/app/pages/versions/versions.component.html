@@ -1,0 +1,14 @@
+<h2>Versions (Diagram {{ diagramId }})</h2>
+
+<div>
+  <button (click)="back()">Back</button>
+  <button (click)="openEditor()">Open editor (create new version)</button>
+</div>
+
+<div *ngIf="error" style="color:red">{{ error }}</div>
+
+<ul>
+  <li *ngFor="let v of versions">
+    <b>v{{ v.versionNumber }}</b> — {{ v.createdAt }} — {{ v.author }}
+  </li>
+</ul>

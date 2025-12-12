@@ -1,0 +1,22 @@
+<h2>Projects</h2>
+
+<div *ngIf="error" style="color:red">{{ error }}</div>
+
+<div style="border:1px solid #ddd; padding:12px; margin-bottom:12px;">
+  <h3>Create project</h3>
+  <div>
+    <input placeholder="Name" [(ngModel)]="name" />
+  </div>
+  <div>
+    <input placeholder="Description" [(ngModel)]="description" />
+  </div>
+  <button (click)="create()">Create</button>
+</div>
+
+<ul>
+  <li *ngFor="let p of projects">
+    <b>{{ p.name }}</b> — {{ p.description }}
+    <button (click)="open(p.id)">Open</button>
+    <button (click)="delete(p.id)">Delete</button>
+  </li>
+</ul>

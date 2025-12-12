@@ -1,0 +1,131 @@
+<h2>DFD Editor (Diagram {{ diagramId }})</h2>
+
+<div>
+  <button (click)="back()">Back</button>
+</div>
+
+<div *ngIf="error" style="color:red">{{ error }}</div>
+
+<div style="display:flex; gap:16px; align-items:flex-start;">
+
+  <div style="flex:1; border:1px solid #ddd; padding:12px;">
+    <h3>Add node</h3>
+    <div>
+      <select [(ngModel)]="nodeType">
+        <option value="process">Process</option>
+        <option value="dataStore">Data Store</option>
+        <option value="externalEntity">External Entity</option>
+      </select>
+    </div>
+    <div><input placeholder="Name" [(ngModel)]="nodeName" /></div>
+    <div><input placeholder="Description" [(ngModel)]="nodeDesc" /></div>
+    <button (click)="addNode()">Add</button>
+
+    <h3 style="margin-top:16px;">Add data flow</h3>
+    <div>
+      <select [(ngModel)]="flowFrom">
+        <option value="" disabled>Select FROM</option>
+        <option *ngFor="let n of allNodes" [value]="n.id">{{n.type}} {{n.id}} - {{n.name}}</option>
+      </select>
+    </div>
+    <div>
+      <select [(ngModel)]="flowTo">
+        <option value="" disabled>Select TO</option>
+        <option *ngFor="let n of allNodes" [value]="n.id">{{n.type}} {{n.id}} - {{n.name}}</option>
+      </select>
+    </div>
+    <div><input placeholder="Label" [(ngModel)]="flowLabel" /></div>
+    <div><input placeholder="Description" [(ngModel)]="flowDesc" /></div>
+    <button (click)="addFlow()">Add flow</button>
+
+    <h3 style="margin-top:16px;">Save</h3>
+    <div><input placeholder="Author (optional)" [(ngModel)]="author" /></div>
+    <button (click)="saveAsNewVersion()">Save as new version</button>
+  </div>
+
+  <div style="flex:1; border:1px solid #ddd; padding:12px;">
+    <h3>Nodes</h3>
+
+    <h4>Processes</h4>
+    <ul>
+      <li *ngFor="let p of model.processes">
+        {{p.id}} — {{p.name}}
+        <button (click)="deleteNode('process', p.id)">Delete</button>
+      </li>
+    </ul>
+
+    <h4>Data Stores</h4>
+    <ul>
+      <li *ngFor="let d of model.dataStores">
+        {{d.id}} — {{d.name}}
+        <button (click)="deleteNode('dataStore', d.id)">Delete</button>
+      </li>
+    </ul>
+
+    <h4>External Entities</h4>
+    <ul>
+      <li *ngFor="let e of model.externalEntities">
+        {{e.id}} — {{e.name}}
+        <button (click)="deleteNode('externalEntity', e.id)">Delete</button>
+      </li>
+    </ul>
+
+    <h3>Data Flows</h3>
+    <ul>
+      <li *ngFor="let f of model.dataFlows">
+        {{f.id}} — {{f.fromId}} → {{f.toId}} ({{f.label}})
+        <button (click)="deleteFlow(f.id)">Delete</button>
+      </li>
+    </ul>
+
+<h3>Canvas view (nodes + flows)</h3>
+
+<div style="position:relative; width:650px; height:350px; border:1px solid #aaa; overflow:hidden;">
+
+  <!-- SVG layer -->
+  <svg
+    width="650"
+    height="350"
+    style="position:absolute; left:0; top:0; pointer-events:none;"
+  >
+    <defs>
+      <marker id="arrowHead" markerWidth="10" markerHeight="7"
+              refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7"></polygon>
+      </marker>
+    </defs>
+
+    <!-- lines -->
+    <line
+      *ngFor="let l of svgLines"
+      [attr.x1]="l.x1" [attr.y1]="l.y1"
+      [attr.x2]="l.x2" [attr.y2]="l.y2"
+      stroke="black"
+      stroke-width="2"
+      marker-end="url(#arrowHead)"
+    ></line>
+
+    <!-- labels -->
+    <text
+      *ngFor="let l of svgLines"
+      [attr.x]="l.mx + 6"
+      [attr.y]="l.my - 6"
+      font-size="12"
+      fill="black"
+    >
+      {{ l.label }}
+    </text>
+  </svg>
+
+  <!-- Nodes layer -->
+  <div *ngFor="let n of getCanvasNodes()"
+       [style.position]="'absolute'"
+       [style.left.px]="n.node.x"
+       [style.top.px]="n.node.y"
+       style="border:1px solid #333; padding:6px; background:#fff; min-width:80px;">
+    <b>{{n.type}}</b><br/>
+    {{n.node.id}}: {{n.node.name}}
+  </div>
+
+</div>
+</div>
