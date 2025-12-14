@@ -35,4 +35,16 @@ export class VersionsComponent implements OnInit {
   back(): void {
     this.router.navigate(['/projects']);
   }
+
+  public openVersion(v: DfdDiagramVersionDto): void {
+    const diagramId = Number(this.route.snapshot.paramMap.get('diagramId'));
+
+    this.router.navigate([
+      '/diagrams',
+      diagramId,
+      'editor'
+    ], {
+      queryParams: { v: v.versionNumber }
+    });
+  }
 }

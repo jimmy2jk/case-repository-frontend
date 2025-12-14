@@ -10,5 +10,6 @@
 <ul>
   <li *ngFor="let v of versions">
     <b>v{{ v.versionNumber }}</b> — {{ v.createdAt }} — {{ v.author }}
+    <button (click)="openVersion(v)">Edit latest</button>
   </li>
 </ul>

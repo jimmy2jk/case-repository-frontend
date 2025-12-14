@@ -45,36 +45,72 @@ export class EditorComponent implements OnInit {
     private router: Router,
     private versionsService: DfdVersionsService
   ) {}
+  
+  versions: DfdDiagramVersionDto[] = [];
+  selectedVersion?: DfdDiagramVersionDto;
+  isReadOnly = false;
 
   ngOnInit(): void {
     this.diagramId = Number(this.route.snapshot.paramMap.get('diagramId'));
-
     this.error = undefined;
-    // 1) пробуємо завантажити всі версії
+
+    // 🔑 СЛУХАЄМО query params (?v=...)
+    this.route.queryParamMap.subscribe(params => {
+      const vParam = params.get('v');
+      const requestedVersionNumber = vParam ? Number(vParam) : null;
+
+      this.loadVersionsAndOpen(requestedVersionNumber);
+    });
+  }
+
+  private loadVersionsAndOpen(requestedVersionNumber: number | null): void {
+    this.error = undefined;
+
     this.versionsService.getForDiagram(this.diagramId).subscribe({
-      next: (versions: DfdDiagramVersionDto[]) => {
-        if (!versions || versions.length === 0) {
-          // якщо версій нема — порожня модель
+      next: (versions) => {
+        this.versions = (versions ?? []).slice().sort((a, b) => a.versionNumber - b.versionNumber);
+
+        if (this.versions.length === 0) {
+          this.selectedVersion = undefined;
+          this.isReadOnly = false;
           this.model = createEmptyDfdModel();
           return;
         }
 
-        // 2) беремо останню версію (макс versionNumber)
-        const last = versions.reduce((a, b) => (a.versionNumber > b.versionNumber ? a : b));
+        let toOpen: DfdDiagramVersionDto | undefined;
 
-        // 3) парсимо JSON
-        const loaded = this.tryParseModel(last.content);
+        // якщо просили конкретну версію
+        if (requestedVersionNumber !== null && !Number.isNaN(requestedVersionNumber)) {
+          toOpen = this.versions.find(v => v.versionNumber === requestedVersionNumber);
 
+          if (toOpen) {
+            this.isReadOnly = true;     // перегляд старої версії
+            this.selectedVersion = toOpen;
+          } else {
+            this.error = `Version v${requestedVersionNumber} not found. Opened latest.`;
+          }
+        }
+
+        // якщо версію не просили або не знайшли — відкриваємо останню для редагування
+        if (!toOpen) {
+          toOpen = this.versions[this.versions.length - 1];
+          this.isReadOnly = false;
+          this.selectedVersion = toOpen;
+        }
+
+        const loaded = this.tryParseModel(toOpen.content);
         this.model = loaded ?? createEmptyDfdModel();
 
         if (!loaded) {
-          this.error = 'Last version JSON is invalid. Opened empty model.';
+          this.error = 'Selected version JSON is invalid. Opened empty model.';
         }
       },
       error: () => {
-        // якщо API не доступне/помилка — хоча б відкриваємо пустий редактор
+        this.versions = [];
+        this.selectedVersion = undefined;
+        this.isReadOnly = false;
         this.model = createEmptyDfdModel();
-        this.error = 'Failed to load last version. Opened empty model.';
+        this.error = 'Failed to load versions. Opened empty model.';
       }
     });
   }
