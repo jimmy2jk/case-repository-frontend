@@ -1,15 +1,75 @@
-<h2>Versions (Diagram {{ diagramId }})</h2>
+<section class="versions-page">
+  <header class="page-header">
+    <div class="header-left">
+      <h2 class="page-title">Versions</h2>
+      <p class="page-subtitle">
+        <strong>{{ diagramName || ('Diagram ' + diagramId) }}</strong>
+        <span class="badge" *ngIf="diagramLevel">{{ diagramLevel }}</span>
+        <span class="chip">#{{ diagramId }}</span>
+        · Manage history and open any version in editor.
+      </p>
+    </div>
 
-<div>
-  <button (click)="back()">Back</button>
-  <button (click)="openEditor()">Open editor (create new version)</button>
-</div>
+    <div class="header-actions">
+      <button class="btn btn--ghost" (click)="back()">← Back</button>
+      <button class="btn btn--primary" (click)="openEditor()">Open editor</button>
+    </div>
+  </header>
 
-<div *ngIf="error" style="color:red">{{ error }}</div>
+  <div *ngIf="error" class="alert alert--error">
+    <span class="alert__dot" aria-hidden="true"></span>
+    <span class="alert__text">{{ error }}</span>
+  </div>
 
-<ul>
-  <li *ngFor="let v of versions">
-    <b>v{{ v.versionNumber }}</b> — {{ v.createdAt }} — {{ v.author }}
-    <button (click)="openVersion(v)">Edit latest</button>
-  </li>
-</ul>
+  <section class="card">
+    <div class="card__header card__header--row">
+      <div>
+        <h3 class="card__title">Version history</h3>
+        <p class="card__subtitle" *ngIf="versions?.length; else emptyHint">
+          {{ versions.length }} versions
+        </p>
+        <ng-template #emptyHint>
+          <p class="card__subtitle">No versions yet — open editor to create the first one.</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="list" *ngIf="versions?.length; else emptyState">
+      <div class="list__row" *ngFor="let v of versions">
+        <div class="list__main">
+          <div class="list__title">
+            <span class="ver">v{{ v.versionNumber }}</span>
+            <span class="badge" *ngIf="v.versionNumber === latestVersionNumber">Latest</span>
+          </div>
+
+          <div class="meta">
+            <span class="meta__item">
+              <span class="meta__label">Created:</span>
+              <span class="meta__value">{{ v.createdAt }}</span>
+            </span>
+            <span class="meta__dot" aria-hidden="true">•</span>
+            <span class="meta__item">
+              <span class="meta__label">Author:</span>
+              <span class="meta__value">{{ v.author }}</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="list__actions">
+          <button class="btn btn--ghost" (click)="openVersion(v)">Open</button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty">
+        <div class="empty__icon" aria-hidden="true">🕘</div>
+        <div class="empty__title">No versions</div>
+        <div class="empty__text">Open editor to create a new version of the diagram.</div>
+        <div class="empty__actions">
+          <button class="btn btn--primary" (click)="openEditor()">Open editor</button>
+        </div>
+      </div>
+    </ng-template>
+  </section>
+</section>

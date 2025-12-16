@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DfdVersionsService } from '../../services/dfd-versions.service';
 import { createEmptyDfdModel, DfdDiagramModel, DfdNodeType } from '../../models/dfd.models';
@@ -20,12 +20,19 @@ type SvgFlowLine = {
 @Component({
   selector: 'app-editor',
   standalone: false,
-  templateUrl: './editor.component.html'
+  templateUrl: './editor.component.html',
+  styleUrls: ['./editor.component.css']
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent implements OnInit, AfterViewInit {
   diagramId!: number;
   model: DfdDiagramModel = createEmptyDfdModel();
   error?: string;
+
+  readonly nodeTypeLabels: Record<DfdNodeType, string> = {
+    process: 'process',
+    dataStore: 'data store',
+    externalEntity: 'external entity'
+  };
 
   // add node form
   nodeType: DfdNodeType = 'process';
@@ -49,6 +56,30 @@ export class EditorComponent implements OnInit {
   versions: DfdDiagramVersionDto[] = [];
   selectedVersion?: DfdDiagramVersionDto;
   isReadOnly = false;
+
+  @ViewChild('canvasRoot') canvasRoot?: ElementRef<HTMLDivElement>;
+
+  ngAfterViewInit(): void {
+    this.syncCanvasSize();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.syncCanvasSize();
+  }
+
+  private syncCanvasSize(): void {
+    const el = this.canvasRoot?.nativeElement;
+    if (!el) return;
+
+    // реальний розмір контейнера (в пікселях)
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+
+    // невеликий safeguard
+    if (w > 0) this.canvasW = w;
+    if (h > 0) this.canvasH = h;
+  }
 
   ngOnInit(): void {
     this.diagramId = Number(this.route.snapshot.paramMap.get('diagramId'));
@@ -383,11 +414,12 @@ export class EditorComponent implements OnInit {
     return candidates[0] ?? { x: rectX + rectW / 2, y: rectY + rectH / 2 };
   }
 
-  private readonly canvasW = 650;
-  private readonly canvasH = 350;
+  canvasW = 650;
+  canvasH = 350;
 
-  private readonly nodeW = 120;
-  private readonly nodeH = 55;
+  // ✅ ПІДЖЕНИ під свій CSS (якщо ноди стали більші)
+  nodeW = 170;
+  nodeH = 74;
 
   private readonly cols = 2;      // максимум 2 ноди в рядку
   private readonly padX = 20;     // відступ зліва

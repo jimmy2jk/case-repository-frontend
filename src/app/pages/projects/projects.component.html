@@ -1,22 +1,81 @@
-<h2>Projects</h2>
+<section class="projects-page">
+  <header class="page-header">
+    <div>
+      <h2 class="page-title">Projects</h2>
+      <p class="page-subtitle">Create a project and manage your DFD diagrams.</p>
+    </div>
+  </header>
 
-<div *ngIf="error" style="color:red">{{ error }}</div>
-
-<div style="border:1px solid #ddd; padding:12px; margin-bottom:12px;">
-  <h3>Create project</h3>
-  <div>
-    <input placeholder="Name" [(ngModel)]="name" />
+  <div *ngIf="error" class="alert alert--error">
+    <span class="alert__dot" aria-hidden="true"></span>
+    <span class="alert__text">{{ error }}</span>
   </div>
-  <div>
-    <input placeholder="Description" [(ngModel)]="description" />
-  </div>
-  <button (click)="create()">Create</button>
-</div>
 
-<ul>
-  <li *ngFor="let p of projects">
-    <b>{{ p.name }}</b> — {{ p.description }}
-    <button (click)="open(p.id)">Open</button>
-    <button (click)="delete(p.id)">Delete</button>
-  </li>
-</ul>
+  <div class="grid">
+    <!-- Create project -->
+    <section class="card">
+      <div class="card__header">
+        <h3 class="card__title">Create project</h3>
+        <p class="card__subtitle">Give it a clear name and short description.</p>
+      </div>
+
+      <div class="form">
+        <label class="field">
+          <span class="field__label">Name</span>
+          <input class="input" placeholder="e.g. Ticketing system" [(ngModel)]="name" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Description</span>
+          <input class="input" placeholder="Short description…" [(ngModel)]="description" />
+        </label>
+
+        <div class="actions">
+          <button class="btn btn--primary" (click)="create()">Create project</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects list -->
+    <section class="card">
+      <div class="card__header card__header--row">
+        <div>
+          <h3 class="card__title">Your projects</h3>
+          <p class="card__subtitle" *ngIf="projects?.length; else emptyHint">
+            {{ projects.length }} total
+          </p>
+          <ng-template #emptyHint>
+            <p class="card__subtitle">No projects yet — create your first one.</p>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="list" *ngIf="projects?.length; else emptyState">
+        <div class="list__row" *ngFor="let p of projects">
+          <div class="list__main">
+            <div class="list__title">{{ p.name }}</div>
+            <div class="list__desc" *ngIf="p.description; else noDesc">
+              {{ p.description }}
+            </div>
+            <ng-template #noDesc>
+              <div class="list__desc list__desc--muted">No description</div>
+            </ng-template>
+          </div>
+
+          <div class="list__actions">
+            <button class="btn btn--ghost" (click)="open(p.id)">Open</button>
+            <button class="btn btn--danger" (click)="delete(p.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty">
+          <div class="empty__icon" aria-hidden="true">📁</div>
+          <div class="empty__title">No projects</div>
+          <div class="empty__text">Create a project to start building DFD diagrams.</div>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+</section>

@@ -1,24 +1,100 @@
-<h2>DFD Diagrams (Project {{ projectId }})</h2>
+<section class="diagrams-page">
+  <header class="page-header">
+    <div class="header-left">
+      <h2 class="page-title">DFD Diagrams</h2>
+      <p class="page-subtitle">
+        Project: 
+        <strong>{{ projectName }}</strong>
+        <span class="chip">#{{ projectId }}</span>
+        · Create and manage diagram versions.
+      </p>
+    </div>
 
-<div>
-  <button (click)="back()">Back</button>
-</div>
+    <div class="header-actions">
+      <button class="btn btn--ghost" (click)="back()">← Back</button>
+    </div>
+  </header>
 
-<div *ngIf="error" style="color:red">{{ error }}</div>
+  <div *ngIf="error" class="alert alert--error">
+    <span class="alert__dot" aria-hidden="true"></span>
+    <span class="alert__text">{{ error }}</span>
+  </div>
 
-<div style="border:1px solid #ddd; padding:12px; margin:12px 0;">
-  <h3>Create diagram</h3>
-  <div><input placeholder="Name" [(ngModel)]="name" /></div>
-  <div><input placeholder="Level (Context, A0, A1...)" [(ngModel)]="level" /></div>
-  <div><input placeholder="Description" [(ngModel)]="description" /></div>
-  <button (click)="create()">Create</button>
-</div>
+  <div class="grid">
+    <!-- Create diagram -->
+    <section class="card">
+      <div class="card__header">
+        <h3 class="card__title">Create diagram</h3>
+        <p class="card__subtitle">Choose level like Context, A0, A1…</p>
+      </div>
 
-<ul>
-  <li *ngFor="let d of diagrams">
-    <b>{{ d.name }}</b> ({{ d.level }}) — {{ d.description }}
-    <button (click)="openVersions(d.id)">Versions</button>
-    <button (click)="openEditor(d.id)">Editor</button>
-    <button (click)="delete(d.id)">Delete</button>
-  </li>
-</ul>
+      <div class="form">
+        <label class="field">
+          <span class="field__label">Name</span>
+          <input class="input" placeholder="e.g. Order processing" [(ngModel)]="name" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Level</span>
+          <input class="input" placeholder="Context / A0 / A1..." [(ngModel)]="level" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Description</span>
+          <input class="input" placeholder="Short description…" [(ngModel)]="description" />
+        </label>
+
+        <div class="actions">
+          <button class="btn btn--primary" (click)="create()">Create diagram</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Diagrams list -->
+    <section class="card">
+      <div class="card__header card__header--row">
+        <div>
+          <h3 class="card__title">Diagrams</h3>
+          <p class="card__subtitle" *ngIf="diagrams?.length; else emptyHint">
+            {{ diagrams.length }} total
+          </p>
+          <ng-template #emptyHint>
+            <p class="card__subtitle">No diagrams yet — create the first one.</p>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="list" *ngIf="diagrams?.length; else emptyState">
+        <div class="list__row" *ngFor="let d of diagrams">
+          <div class="list__main">
+            <div class="list__title">
+              {{ d.name }}
+              <span class="badge">{{ d.level }}</span>
+            </div>
+
+            <div class="list__desc" *ngIf="d.description; else noDesc">
+              {{ d.description }}
+            </div>
+            <ng-template #noDesc>
+              <div class="list__desc list__desc--muted">No description</div>
+            </ng-template>
+          </div>
+
+          <div class="list__actions">
+            <button class="btn btn--ghost" (click)="openVersions(d.id)">Versions</button>
+            <button class="btn btn--primary btn--primary-soft" (click)="openEditor(d.id)">Editor</button>
+            <button class="btn btn--danger" (click)="delete(d.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #emptyState>
+        <div class="empty">
+          <div class="empty__icon" aria-hidden="true">🧩</div>
+          <div class="empty__title">No diagrams</div>
+          <div class="empty__text">Create a diagram to start editing DFD elements.</div>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+</section>

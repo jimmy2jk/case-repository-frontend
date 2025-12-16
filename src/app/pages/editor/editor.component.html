@@ -1,139 +1,263 @@
-<h2>DFD Editor (Diagram {{ diagramId }})</h2>
-
-<div>
-  <button (click)="back()">Back</button>
-</div>
-
-<div *ngIf="error" style="color:red">{{ error }}</div>
-
-<div style="display:flex; gap:16px; align-items:flex-start;">
-
-  <div style="flex:1; border:1px solid #ddd; padding:12px;">
-    <h3>Add node</h3>
-    <div>
-      <select [(ngModel)]="nodeType">
-        <option value="process">Process</option>
-        <option value="dataStore">Data Store</option>
-        <option value="externalEntity">External Entity</option>
-      </select>
+<section class="editor-page">
+  <header class="page-header">
+    <div class="header-left">
+      <h2 class="page-title">DFD Editor</h2>
+      <p class="page-subtitle">
+        Diagram <span class="chip">#{{ diagramId }}</span>
+      </p>
     </div>
-    <div><input placeholder="Name" [(ngModel)]="nodeName" /></div>
-    <div><input placeholder="Description" [(ngModel)]="nodeDesc" /></div>
-    <button (click)="addNode()">Add</button>
 
-    <h3 style="margin-top:16px;">Add data flow</h3>
-    <div>
-      <select [(ngModel)]="flowFrom">
-        <option value="" disabled>Select FROM</option>
-        <option *ngFor="let n of allNodes" [value]="n.id">{{n.type}} {{n.id}} - {{n.name}}</option>
-      </select>
+    <div class="header-actions">
+      <button class="btn btn--ghost" (click)="back()">← Back</button>
+      <button class="btn btn--primary" (click)="saveAsNewVersion()">Save</button>
     </div>
-    <div>
-      <select [(ngModel)]="flowTo">
-        <option value="" disabled>Select TO</option>
-        <option *ngFor="let n of allNodes" [value]="n.id">{{n.type}} {{n.id}} - {{n.name}}</option>
-      </select>
-    </div>
-    <div><input placeholder="Label" [(ngModel)]="flowLabel" /></div>
-    <div><input placeholder="Description" [(ngModel)]="flowDesc" /></div>
-    <button (click)="addFlow()">Add flow</button>
+  </header>
 
-    <h3 style="margin-top:16px;">Save</h3>
-    <div><input placeholder="Author (optional)" [(ngModel)]="author" /></div>
-    <button (click)="saveAsNewVersion()">Save as new version</button>
+  <div *ngIf="error" class="alert alert--error">
+    <span class="alert__dot" aria-hidden="true"></span>
+    <span class="alert__text">{{ error }}</span>
   </div>
 
-  <div style="flex:1; border:1px solid #ddd; padding:12px;">
-    <h3>Nodes</h3>
+  <div class="editor-grid">
+    <!-- LEFT: Controls -->
+    <aside class="panel panel--left">
+      <section class="card">
+        <div class="card__header">
+          <h3 class="card__title">Add node</h3>
+          <p class="card__subtitle">Create Process, Data Store or External Entity.</p>
+        </div>
 
-    <h4>Processes</h4>
-    <ul>
-      <li *ngFor="let p of model.processes">
-        {{p.id}} — {{p.name}}
-        <button (click)="deleteNode('process', p.id)">Delete</button>
-      </li>
-    </ul>
+        <div class="form">
+          <label class="field">
+            <span class="field__label">Type</span>
+            <select class="input" [(ngModel)]="nodeType">
+              <option value="process">Process</option>
+              <option value="dataStore">Data Store</option>
+              <option value="externalEntity">External Entity</option>
+            </select>
+          </label>
 
-    <h4>Data Stores</h4>
-    <ul>
-      <li *ngFor="let d of model.dataStores">
-        {{d.id}} — {{d.name}}
-        <button (click)="deleteNode('dataStore', d.id)">Delete</button>
-      </li>
-    </ul>
+          <label class="field">
+            <span class="field__label">Name</span>
+            <input class="input" placeholder="e.g. Order processing" [(ngModel)]="nodeName" />
+          </label>
 
-    <h4>External Entities</h4>
-    <ul>
-      <li *ngFor="let e of model.externalEntities">
-        {{e.id}} — {{e.name}}
-        <button (click)="deleteNode('externalEntity', e.id)">Delete</button>
-      </li>
-    </ul>
+          <label class="field">
+            <span class="field__label">Description</span>
+            <input class="input" placeholder="Optional…" [(ngModel)]="nodeDesc" />
+          </label>
 
-    <h3>Data Flows</h3>
-    <ul>
-      <li *ngFor="let f of model.dataFlows">
-        {{f.id}} — {{f.fromId}} → {{f.toId}} ({{f.label}})
-        <button (click)="deleteFlow(f.id)">Delete</button>
-      </li>
-    </ul>
+          <div class="actions">
+            <button class="btn btn--primary btn--full" (click)="addNode()">Add node</button>
+          </div>
+        </div>
+      </section>
 
-<h3>Canvas view (nodes + flows)</h3>
+      <section class="card">
+        <div class="card__header">
+          <h3 class="card__title">Add data flow</h3>
+          <p class="card__subtitle">Connect existing nodes with a labeled flow.</p>
+        </div>
 
-<div style="position:relative; width:650px; height:350px; border:1px solid #aaa; overflow:hidden;">
+        <div class="form">
+          <label class="field">
+            <span class="field__label">From</span>
+            <select class="input" [(ngModel)]="flowFrom">
+              <option value="" disabled>Select FROM</option>
+              <option *ngFor="let n of allNodes" [value]="n.id">{{n.type}} {{n.id}} - {{n.name}}</option>
+            </select>
+          </label>
 
-  <!-- SVG layer -->
-  <svg
-    width="650"
-    height="350"
-    style="position:absolute; left:0; top:0; pointer-events:none;"
-  >
-    <defs>
-      <marker
-        id="arrowHead"
-        viewBox="0 0 10 10"
-        refX="10"
-        refY="5"
-        markerWidth="8"
-        markerHeight="8"
-        orient="auto"
-      >
-        <path d="M 0 0 L 10 5 L 0 10 z" fill="black"></path>
-      </marker>
-    </defs>
+          <label class="field">
+            <span class="field__label">To</span>
+            <select class="input" [(ngModel)]="flowTo">
+              <option value="" disabled>Select TO</option>
+              <option *ngFor="let n of allNodes" [value]="n.id">{{n.type}} {{n.id}} - {{n.name}}</option>
+            </select>
+          </label>
 
+          <label class="field">
+            <span class="field__label">Label</span>
+            <input class="input" placeholder="e.g. Request / Response" [(ngModel)]="flowLabel" />
+          </label>
 
-    <!-- lines -->
-    <line
-      *ngFor="let l of svgLines"
-      [attr.x1]="l.x1" [attr.y1]="l.y1"
-      [attr.x2]="l.x2" [attr.y2]="l.y2"
-      stroke="black"
-      stroke-width="4"
-      [attr.marker-end]="'url(#arrowHead)'"
-    ></line>
+          <label class="field">
+            <span class="field__label">Description</span>
+            <input class="input" placeholder="Optional…" [(ngModel)]="flowDesc" />
+          </label>
 
-    <!-- labels -->
-    <text
-      *ngFor="let l of svgLines"
-      [attr.x]="l.mx + 6"
-      [attr.y]="l.my - 6"
-      font-size="12"
-      fill="black"
-    >
-      {{ l.label }}
-    </text>
-  </svg>
+          <div class="actions">
+            <button class="btn btn--primary btn--full" (click)="addFlow()">Add flow</button>
+          </div>
+        </div>
+      </section>
 
-  <!-- Nodes layer -->
-  <div *ngFor="let n of getCanvasNodes()"
-       [style.position]="'absolute'"
-       [style.left.px]="n.node.x"
-       [style.top.px]="n.node.y"
-       style="border:1px solid #333; padding:6px; background:#fff; width:120px; height:55px; box-sizing:border-box;">
-    <b>{{n.type}}</b><br/>
-    {{n.node.id}}: {{n.node.name}}
+      <section class="card">
+        <div class="card__header">
+          <h3 class="card__title">Save</h3>
+          <p class="card__subtitle">Create a new version in the repository.</p>
+        </div>
+
+        <div class="form">
+          <label class="field">
+            <span class="field__label">Author</span>
+            <input class="input" placeholder="Author (optional)" [(ngModel)]="author" />
+          </label>
+
+          <div class="actions">
+            <button class="btn btn--primary btn--full" (click)="saveAsNewVersion()">Save as new version</button>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTER: Canvas -->
+    <main class="canvas-wrap">
+      <section class="card canvas-card">
+        <div class="card__header card__header--row">
+          <div>
+            <h3 class="card__title">Canvas</h3>
+            <p class="card__subtitle">Drag-like layout is static for now; flows are rendered with SVG arrows.</p>
+          </div>
+          <div class="hint">
+            <span class="hint__dot"></span>
+            <span class="hint__text">Tip: Add nodes first, then connect them with flows.</span>
+          </div>
+        </div>
+
+        <div class="canvas" #canvasRoot>
+          <!-- SVG layer -->
+          <svg
+            class="canvas__svg"
+            [attr.width]="canvasW"
+            [attr.height]="canvasH"
+            [attr.viewBox]="'0 0 ' + canvasW + ' ' + canvasH"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <marker
+                id="arrowHead"
+                viewBox="0 0 10 10"
+                refX="10"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f172a"></path>
+              </marker>
+            </defs>
+
+            <line
+              *ngFor="let l of svgLines"
+              [attr.x1]="l.x1" [attr.y1]="l.y1"
+              [attr.x2]="l.x2" [attr.y2]="l.y2"
+              class="flow-line"
+              [attr.marker-end]="'url(#arrowHead)'"
+            ></line>
+
+            <text
+              *ngFor="let l of svgLines"
+              [attr.x]="l.mx + 8"
+              [attr.y]="l.my - 8"
+              class="flow-label"
+            >
+              {{ l.label }}
+            </text>
+          </svg>
+
+          <!-- Nodes layer -->
+          <div
+            *ngFor="let n of getCanvasNodes()"
+            class="node"
+            [ngClass]="'node--' + n.type"
+            [style.left.px]="n.node.x"
+            [style.top.px]="n.node.y"
+            [style.width.px]="nodeW"
+            [style.height.px]="nodeH"
+          >
+            <div class="node__type">
+              {{ nodeTypeLabels[n.type] }}
+            </div>
+            <div class="node__body">
+              <span class="node__id">{{ n.node.id }}</span>
+              <span class="node__name">{{ n.node.name }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- RIGHT: Lists -->
+    <aside class="panel panel--right">
+      <section class="card">
+        <div class="card__header">
+          <h3 class="card__title">Nodes</h3>
+          <p class="card__subtitle">Manage entities in the diagram.</p>
+        </div>
+
+        <div class="lists">
+          <div class="list-block">
+            <div class="list-block__title">Processes</div>
+            <div class="mini-list" *ngIf="model.processes?.length; else noProc">
+              <div class="mini-row" *ngFor="let p of model.processes">
+                <div class="mini-row__main">
+                  <b>{{p.id}}</b> — {{p.name}}
+                </div>
+                <button class="btn btn--danger btn--xs" (click)="deleteNode('process', p.id)">Delete</button>
+              </div>
+            </div>
+            <ng-template #noProc>
+              <div class="empty-inline">No processes</div>
+            </ng-template>
+          </div>
+
+          <div class="list-block">
+            <div class="list-block__title">Data Stores</div>
+            <div class="mini-list" *ngIf="model.dataStores?.length; else noDs">
+              <div class="mini-row" *ngFor="let d of model.dataStores">
+                <div class="mini-row__main">
+                  <b>{{d.id}}</b> — {{d.name}}
+                </div>
+                <button class="btn btn--danger btn--xs" (click)="deleteNode('dataStore', d.id)">Delete</button>
+              </div>
+            </div>
+            <ng-template #noDs>
+              <div class="empty-inline">No data stores</div>
+            </ng-template>
+          </div>
+
+          <div class="list-block">
+            <div class="list-block__title">External Entities</div>
+            <div class="mini-list" *ngIf="model.externalEntities?.length; else noEe">
+              <div class="mini-row" *ngFor="let e of model.externalEntities">
+                <div class="mini-row__main">
+                  <b>{{e.id}}</b> — {{e.name}}
+                </div>
+                <button class="btn btn--danger btn--xs" (click)="deleteNode('externalEntity', e.id)">Delete</button>
+              </div>
+            </div>
+            <ng-template #noEe>
+              <div class="empty-inline">No external entities</div>
+            </ng-template>
+          </div>
+
+          <div class="list-block">
+            <div class="list-block__title">Data Flows</div>
+            <div class="mini-list" *ngIf="model.dataFlows?.length; else noFlows">
+              <div class="mini-row" *ngFor="let f of model.dataFlows">
+                <div class="mini-row__main">
+                  <b>{{f.id}}</b> — {{f.fromId}} → {{f.toId}} <span class="muted">({{f.label}})</span>
+                </div>
+                <button class="btn btn--danger btn--xs" (click)="deleteFlow(f.id)">Delete</button>
+              </div>
+            </div>
+            <ng-template #noFlows>
+              <div class="empty-inline">No flows</div>
+            </ng-template>
+          </div>
+        </div>
+      </section>
+    </aside>
   </div>
-
-</div>
-</div>
+</section>
